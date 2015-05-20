@@ -82,8 +82,9 @@ env.build_sdk_includes(Glob('*.h'))
 libs = []
 
 common = env.add_directory('common')
+crypto = env.add_directory('crypto')
 
-cpps=[common]
+cpps=[common, crypto]
 share=env.build_library(target= env['project_name'],
                         source = cpps,
                         LIBS = [libs])

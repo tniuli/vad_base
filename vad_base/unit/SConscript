@@ -1,0 +1,18 @@
+Import('env')
+
+env = env.Clone()
+
+libs=['']
+libcommon_sources = Glob('*.c[cp]*')
+
+env.build_library(target = 'vad_base_common',
+                  source = libcommon_sources,
+	                LIBS = libs)	  
+
+common_unittest = env.add_directory('unittest')
+
+env.build_sdk_includes(Glob('*.h'))
+
+cpps=[libcommon_sources]
+Return(['cpps'] )
+

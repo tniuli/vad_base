@@ -1,0 +1,18 @@
+Import('env')
+
+env = env.Clone()
+
+libs=['']
+libcrypto_sources = Glob('*.c[cp]*')
+
+env.build_library(target = 'vad_base_crypto',
+                  source = libcrypto_sources,
+	                LIBS = libs)	  
+
+crypto_unittest = env.add_directory('unittest')
+
+env.build_sdk_includes(Glob('*.h'))
+
+cpps=[libcrypto_sources]
+Return(['cpps'] )
+

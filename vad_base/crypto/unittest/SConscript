@@ -1,0 +1,12 @@
+Import('env')
+
+env = env.Clone()
+
+unittest_cpps = Glob('*.c[cp]*')
+crypto_test_sources= [Glob('#vad_base/test/*.c[cp]*'),
+                       unittest_cpps]
+libs = ['gtest', 'pthread', 'vad_base_crypto']
+
+crypto_unittest = env.build_unittest(target = 'crypto_unittest',
+                                  source = crypto_test_sources,
+                                  LIBS = [libs])
