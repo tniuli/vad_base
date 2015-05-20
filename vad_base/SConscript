@@ -1,0 +1,89 @@
+import os, sys
+
+Import('env')
+
+env = env.Clone()
+
+define_macro = env['project_name'].upper()
+config_h_content_head = """//config.h
+#ifndef """ + define_macro + """_CONFIG_H_
+#define """ + define_macro + """_CONFIG_H_
+"""
+
+config_h_content_tail = """
+#endif
+"""
+
+def generate_config_header_(target, source, env):
+    t = target[0]
+    file = open(t.path, 'w')
+    file.write(config_h_content_head)
+
+    file.write(config_h_content_tail)
+    file.close()
+    return 0
+
+env.Append(BUILDERS = {'generate_config_header_builder' : Builder(action = generate_config_header_)})
+
+def generate_config_header(self, *args, **kwargs):
+    target = self.generate_config_header_builder(*args, **kwargs)
+    self.Default(target)
+    self.AlwaysBuild(target)
+    return target
+env.AddMethod(generate_config_header)
+
+env.generate_config_header('config.h', env['user_conf'])
+
+#env.Append(CPPPATH = env['topdir'] + '/contribute/mxml-2.2.2/')
+##############################################################################################
+
+def build_sdk_includes(self, sdk_includes = []):
+    ans = []
+    if sdk_includes:
+        for header in sdk_includes:
+            source_path = str(header)
+            dest_path = os.path.abspath(source_path)
+            dest_path = dest_path[dest_path.rfind("/" + env['project_name']+ "/"):]
+            dest_path = self['SDK_BUILD_DIR_INCLUDE'] + dest_path
+            t = env.InstallAs(dest_path, source_path)
+            env.Alias('sdk', t)
+            env.Default(t)
+            ans.append(t)
+    return ans
+env.AddMethod(build_sdk_includes)
+##############################################################################################
+# compile all the proto
+
+def generate_source_file_with_proto(self, **kwargs):
+    source = Flatten(kwargs['source'])
+    protoPath = env.getUpperPath(source[0].abspath)
+    print "protopath is ", protoPath
+    cmd = 'protoc --proto_path='
+    cmd += protoPath + ' --cpp_out=' + protoPath + ' ' + protoPath + '*.proto'
+    print 'cmd is ', cmd;
+    ret = os.system(cmd)
+    if ret: 
+        return ret
+    return 0
+env.AddMethod(generate_source_file_with_proto)
+
+libstructs_proto = Glob('structs/*.proto')
+#env.generate_source_file_with_proto(source = libstructs_proto);
+
+#libmsdsinterface_proto = Glob('ms_ds_interface/*.proto')
+#env.generate_source_file_with_proto(source = libmsdsinterface_proto);
+
+##############################################################################################
+# List my sub-directories.
+env.Append(LIBS=['pthread'])
+
+env.build_sdk_includes(Glob('*.h'))
+
+libs = []
+
+common = env.add_directory('common')
+
+cpps=[common]
+share=env.build_library(target= env['project_name'],
+                        source = cpps,
+                        LIBS = [libs])

@@ -1,0 +1,12 @@
+Import('env')
+
+env = env.Clone()
+
+unittest_cpps = Glob('*.c[cp]*')
+common_test_sources= [Glob('#vad_base/test/*.c[cp]*'),
+                       unittest_cpps]
+libs = ['gtest', 'pthread', 'vad_base_common']
+
+common_unittest = env.build_unittest(target = 'common_unittest',
+                                  source = common_test_sources,
+                                  LIBS = [libs])
